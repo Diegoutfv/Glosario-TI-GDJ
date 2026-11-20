@@ -1,0 +1,42 @@
+services:
+  mongo:
+    image: mongo:6
+    container_name: glosario-mongo
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - glosario-net
+
+  backend:
+    build: ./backend
+    image: glosario-backend:latest
+    container_name: glosario-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_URI=${MONGO_URI:-mongodb://mongo:27017/glosario}
+      - JWT_SECRET=${JWT_SECRET:-secreto_de_desarrollo}
+    depends_on:
+      - mongo
+    networks:
+      - glosario-net
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        REACT_APP_API_URL: /api
+    image: glosario-frontend:latest
+    container_name: glosario-frontend
+    ports:
+      - "8081:80"   # 8081 para no chocar con Jenkins (8080)
+    depends_on:
+      - backend
+    networks:
+      - glosario-net
+
+networks:
+  glosario-net:
+
+volumes:
+  mongo_data:
