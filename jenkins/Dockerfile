@@ -1,0 +1,17 @@
+FROM jenkins/jenkins:lts-jdk17
+
+USER root
+
+# Docker CLI + plugin compose (el daemon es el del host, via docker.sock)
+RUN apt-get update && apt-get install -y ca-certificates curl gnupg \
+ && install -m 0755 -d /etc/apt/keyrings \
+ && curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc \
+ && echo "deb [signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian $(. /etc/os-release && echo $VERSION_CODENAME) stable" > /etc/apt/sources.list.d/docker.list \
+ && apt-get update && apt-get install -y docker-ce-cli docker-compose-plugin \
+ && rm -rf /var/lib/apt/lists/*
+
+# Plugins necesarios: Git, GitHub, Pipeline y Docker
+RUN jenkins-plugin-cli --plugins git github workflow-aggregator pipeline-stage-view docker-workflow
+
+# Root para poder usar docker.sock (solo para esta práctica local)
+USER root
